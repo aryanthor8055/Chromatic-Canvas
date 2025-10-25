@@ -21,6 +21,46 @@ export default defineSchema({
     }).index("by_token", ["tokenIdentifier"])
       .index("by_email", ["email"])
       .searchIndex("search_name", {searchField:'name'}) //user search
-      .searchIndex("search_email", {searchField:'email'}) //user search
+      .searchIndex("search_email", {searchField:'email'}), //user search
 
+    projects: defineTable({
+        //Basic Project info
+        title:v.string(),
+        userId:v.id("users"),
+
+        //Canvas dimensions and state
+        canvasState:v.any(), //Fabric.js canvas JSON (objects,layers,etc.)
+        width: v.number(),// Canvas width in pixels
+        height:v.number(), // Canvas height in pixels
+
+        originalImageUrl:v.optional(v.string()), //Initial uploaded image
+        currentImageUrl:v.optional(v.string()), // Current Processed Image
+        thumbnailUrl:v.optional(v.string()),//HW-Small preview for dashboard
+
+        //ImageKit transformation state
+        activeTransformations:v.optional(v.string()),
+
+        // AI features state - tracks what AI processing has been applied
+        backgroundRemoved:v.optional(v.boolean()),//Has background been removed
+
+        //Organization
+        folderId: v.optional(v.id('folders')), // Optional folder organization
+
+        //TimeStamps
+        createdAt:v.number(),
+        updatedAt:v.number(),
+
+    }).index("by_user",["userId"])
+    .index("by_user_updated",["userId","updatedAt"])
+    .index("by_folder",["folderId"]),
+
+    folders:defineTable({
+        name:v.string(), //folder name
+        userId:v.id("users"),
+        createdAt:v.number(),
+    }).index("by_user",["userId"])
 })
+
+// PLAN LIMITS EXAMPLE:
+// Free: 3 projects,20 exports/month,basic features only
+// Pro: Unlimited projects/exports,all AI features
