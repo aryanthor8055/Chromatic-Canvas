@@ -1,10 +1,11 @@
 'use client'
-import useInterfaceObserver from '@/hooks/use-intersection-observer'
+import useInterSectionObserver from '@/hooks/use-intersection-observer'
+
 import React, { useState } from 'react'
 
 
 const FeatureCard = ({icon,title,description,delay=0}) => {
-    const [ref,isVisible]= useInterfaceObserver()
+    const [ref,isVisible]= useInterSectionObserver()
     const [isHovered,setIsHovered]=useState(false)
   return (
     <div ref={ref} className={`backdrop-blur-lg bg-white/5 border border-white/10 rounded-2xl p-8 transition-all duration-700 cursor-pointer ${isVisible?"opacity-100 translate-y-0":"opacity-0 translate-y-10"} ${isHovered?"transform scale-105 rotate-1 shadow-2xl":""}`}
