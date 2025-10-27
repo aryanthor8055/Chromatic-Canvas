@@ -12,22 +12,31 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import UpgradeModal from "@/components/upgrade-modal";
 import { api } from "@/convex/_generated/api";
 import { useConvexMutation, useConvexQuery } from "@/hooks/use-convex-query";
 import { usePlanAccess } from "@/hooks/use-plan-access";
 import { Crown, ImageIcon, Loader2, Upload, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
+import { toast } from "sonner";
 
 const NewProjectModal = ({ isOpen, onClose }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [projectTitle, setProjectTitle] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [showUpgradeModal,setShowUpgradeModal]=useState(false)
+  const router=useRouter()
   const { data: projects } = useConvexQuery(api.projects.getUserProjects);
   const { mutate: createProject } = useConvexMutation(api.projects.create);
 
   const handleClose = () => {
+    setSelectedFile(null)
+    setPreviewUrl(null)
+    setProjectTitle("")
+    setIsUploading(false)
     onClose();
   };
   const { isFree, canCreateProject } = usePlanAccess();
@@ -35,8 +44,54 @@ const NewProjectModal = ({ isOpen, onClose }) => {
 
   const canCreate = canCreateProject(currentProjectCount);
 
-  const handleCreateProject = () => {
-    
+  const handleCreateProject = async() => {
+    if(!canCreate){
+      setShowUpgradeModal(true)
+      return;
+    }
+    if(!selectedFile || !projectTitle.trim()){
+      toast.error("Please select an image and enter a project title")
+      return
+    }
+
+    setIsUploading(true)
+    try {
+      const formData=new FormData();
+
+      formData.append("file",selectedFile)
+      formData.append("fileName",selectedFile.name)
+
+      const uploadResponse= await fetch("/api/imagekit/upload",{
+        method:"POST",
+        body:formData,
+      }) 
+
+      const uploadData=await uploadResponse.json()
+
+      if(!uploadData.success){
+        throw new Error(uploadData.error || 'Failed to upload image')
+      }
+
+      const projectId=await createProject({
+        title:projectTitle.trim(),
+        originalImageUrl:uploadData.url,
+        currentImageUrl:uploadData.url,
+        thumbnailUrl:uploadData.thumbnailUrl,
+        width:uploadData.width || 800,
+        height:uploadData.height || 600,
+        canvasState: null
+      })
+
+      toast.success("Project created successfully")
+      router.push(`/editor/${projectId}`);
+    } catch (error) {
+      console.error("Error creating project",error)
+      toast.error(
+        error.message || 'Failed to Create project.Please try again'
+      )
+    }finally{
+      setIsUploading(false)
+    }
   };
 
   const onDrop = (acceptedFiles) => {
@@ -169,7 +224,7 @@ const NewProjectModal = ({ isOpen, onClose }) => {
             <Button
               variant="ghost"
               onClick={handleClose}
-              className="text-white/70 hover:text-white"
+              className="text-white/70 hover:text-white cursor-pointer"
               disabled={isUploading}
             >
               Cancel
@@ -179,6 +234,7 @@ const NewProjectModal = ({ isOpen, onClose }) => {
               variant="primary"
               onClick={handleCreateProject}
               disabled={!selectedFile || !projectTitle.trim() || isUploading}
+              className='cursor-pointer'
             >
               {isUploading ? (
                 <>
@@ -191,6 +247,13 @@ const NewProjectModal = ({ isOpen, onClose }) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <UpgradeModal
+      isOpen={showUpgradeModal}
+      onClose={()=>setShowUpgradeModal(false)}
+      restrictedTool="projects"
+      reason="Free Plan is limited to 3 projects.Upgrade to Pro for unlimited projects and access to all AI editing tools."
+      />
     </>
   );
 };

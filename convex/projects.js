@@ -24,8 +24,9 @@ export const create=mutation({
             }
         }
 
-        await ctx.db.insert("projects",{
+      const projectId=  await ctx.db.insert("projects",{
         title:args.title,
+        userId: user._id,
         originalImageUrl:args.originalImageUrl,
         currentImageUrl:args.currentImageUrl,
         thumbnailUrl:args.thumbnailUrl,
@@ -62,7 +63,7 @@ export const deleteProject=mutation({
     handler:async(ctx,args)=>{
         const user=await ctx.runQuery(internal.users.getCurrentUser)
 
-       const project=await ctx.get(args.projectId)
+       const project=await ctx.db.get(args.projectId)
        if(!project){
         throw new Error("Project not found")
        }
