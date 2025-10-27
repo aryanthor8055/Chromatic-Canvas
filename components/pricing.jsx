@@ -34,7 +34,7 @@ const PricingCard=({id,plan,price,features,featured=false,planId,buttonText})=>{
           ? "bg-gradient-to-b from-blue-500/20 to-purple-600/20 border-blue-400/50 scale-105"
           : "bg-white/5 border-white/10"
       } ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"} ${
-        isHovered ? "transform scale-115 rotate-1 z-10" : ""
+        isHovered ? "transform scale-115 z-10" : ""
       }`}
     onMouseEnter={()=>setIsHovered(true)}
     onMouseLeave={()=>setIsHovered(false)}
