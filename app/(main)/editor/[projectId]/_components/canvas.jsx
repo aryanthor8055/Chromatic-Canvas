@@ -33,7 +33,7 @@ const CanvasEditor = ({ project }) => {
 
     return Math.min(scaleX, scaleY, 1);
   };
-    useEffect(() => {
+  useEffect(() => {
     if (!canvasRef.current || !project || canvasEditor) return;
 
     const initializeCanvas = async () => {
@@ -144,76 +144,87 @@ const CanvasEditor = ({ project }) => {
     };
   }, [project]);
 
-  const saveCanvasState=async()=>{
-    if(!canvasEditor || !project) return
+  const saveCanvasState = async () => {
+    if (!canvasEditor || !project) return;
 
     try {
-        const canvasJSON=canvasEditor.toJSON();
+      const canvasJSON = canvasEditor.toJSON();
 
-        //save to Convex database
-        await updateProject({
-            projectId:project._id,
-            canvasState:canvasJSON,
-        })
+      //save to Convex database
+      await updateProject({
+        projectId: project._id,
+        canvasState: canvasJSON,
+      });
     } catch (error) {
-        console.error("Error saving canvas state",error)
+      console.error("Error saving canvas state", error);
     }
-  }
+  };
 
-  useEffect(()=>{
-    if(!canvasEditor) return
+  useEffect(() => {
+    if (!canvasEditor) return;
 
     let saveTimeout;
 
     //Debounce save function - waits 2 seconds after last change
 
-    const handleCanvasChange=()=>{
-        clearTimeout(saveTimeout);
-        saveTimeout=setTimeout(()=>{
-            saveCanvasState();
-
-        },2000) //2 second delay
-    }
+    const handleCanvasChange = () => {
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => {
+        saveCanvasState();
+      }, 2000); //2 second delay
+    };
 
     canvasEditor.on("object:modified", handleCanvasChange);
     canvasEditor.on("object:added", handleCanvasChange);
     canvasEditor.on("object:removed", handleCanvasChange);
 
-    return ()=>{
-        clearTimeout(saveTimeout);
-         canvasEditor.off("object:modified", handleCanvasChange);
-    canvasEditor.off("object:added", handleCanvasChange);
-    canvasEditor.off("object:removed", handleCanvasChange);
-    }
+    return () => {
+      clearTimeout(saveTimeout);
+      canvasEditor.off("object:modified", handleCanvasChange);
+      canvasEditor.off("object:added", handleCanvasChange);
+      canvasEditor.off("object:removed", handleCanvasChange);
+    };
+  }, [canvasEditor]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (!canvasEditor || !project) return;
 
-  },[canvasEditor])
+      //Recalculate optimal scale for new window size
+      const newScale = calculateViewportScale();
 
-  useEffect(()=>{
-    const handleResize=()=>{
-        if(!canvasEditor || !project) return
-
-        //Recalculate optimal scale for new window size
-        const newScale=calculateViewportScale()
-
-        canvasEditor.setDimensions({
-            width:project.width * newScale,
-            height:project.height *newScale
+      canvasEditor.setDimensions(
+        {
+          width: project.width * newScale,
+          height: project.height * newScale,
         },
-        {backstoreOnly:false}
-    
-    )
-    canvasEditor.setZoom(newScale)
-    canvasEditor.calcOffset();
-    canvasEditor.requestRenderAll()
+        { backstoreOnly: false }
+      );
+      canvasEditor.setZoom(newScale);
+      canvasEditor.calcOffset();
+      canvasEditor.requestRenderAll();
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, [canvasEditor, project]);
+
+  useEffect(() => {
+    if (!canvasEditor) return;
+
+    switch (activeTool) {
+      case "crop":
+        //Crop tool shows crosshair cursor for precision selection
+        canvasEditor.defaultCursor = "crosshair";
+        canvasEditor.hoverCursor = "crosshair";
+        break;
+      default:
+        //Default tools show standard cursors
+        canvasEditor.defaultCursor = "default";
+        canvasEditor.hoverCursor = "move";
     }
-
-    window.addEventListener("resize",handleResize)
-
-    return ()=> window.removeEventListener("resize",handleResize)
-  },[canvasEditor,project])
-
-  
+  }, [canvasEditor, activeTool]);
   return (
     <div
       ref={containerRef}
