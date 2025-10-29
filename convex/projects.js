@@ -116,7 +116,7 @@ export const updateProject=mutation({
     backgroundRemoved: v.optional(v.boolean()),
     },
 
-    handler:async()=>{
+    handler:async(ctx,args)=>{
           const user=await ctx.runQuery(internal.users.getCurrentUser)
 
        const project=await ctx.db.get(args.projectId)
