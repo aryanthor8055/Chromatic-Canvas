@@ -3,7 +3,7 @@ import { Crop, Expand, Eye, Maximize2, Palette, Sliders, Text } from 'lucide-rea
 import React from 'react'
 import CropContent from './tools/crop';
 import ResizeControls from './tools/resize';
-import AdjustControls from './tools/adjust';
+import { AdjustControls } from './tools/adjust';
 
 
 const TOOL_CONFIGS = {
