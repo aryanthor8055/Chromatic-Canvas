@@ -4,6 +4,8 @@ import React from 'react'
 import CropContent from './tools/crop';
 import ResizeControls from './tools/resize';
 import { AdjustControls } from './tools/adjust';
+import BackgroundControls from './tools/ai-background';
+import { TextControls } from './tools/text';
 
 
 const TOOL_CONFIGS = {
@@ -80,7 +82,11 @@ function renderToolConfig(activeTool,project){
         case "resize":
             return <ResizeControls project={project}/>
         case "adjust":
-            return <AdjustControls/>    
+            return <AdjustControls/>  
+        case "background":
+            return <BackgroundControls project={project}/>      
+        case "text":
+        return <TextControls/>
     
         default:
            <div className='text-white'>Select a tool to get started</div>
