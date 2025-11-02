@@ -7,6 +7,7 @@ import { AdjustControls } from './tools/adjust';
 import BackgroundControls from './tools/ai-background';
 import { TextControls } from './tools/text';
 import { AIExtenderControls } from './tools/ai-extend';
+import { AIEdit } from './tools/ai-edit';
 
 
 const TOOL_CONFIGS = {
@@ -90,6 +91,8 @@ function renderToolConfig(activeTool,project){
         return <TextControls/>
         case "ai_extender":
         return <AIExtenderControls project={project}/>
+         case "ai_edit":
+        return <AIEdit project={project}/>
     
         default:
            <div className='text-white'>Select a tool to get started</div>
