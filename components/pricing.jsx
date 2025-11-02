@@ -90,7 +90,7 @@ const Pricing = () => {
     {
       id: "pro",
       plan: "Pro",
-      price: 12,
+      price: 5,
       features: [
         "Unlimited projects",
         "Unlimited exports",
